@@ -73,7 +73,6 @@ public class PlayerIntegrationTest {
                              "team":"ソフトバンク"
                          }
                          """
-
                 ));
     }
 
@@ -103,8 +102,11 @@ public class PlayerIntegrationTest {
                              "number": 11,
                              "team":"パドレス"
                          }
-                         """));
-    }
+                         """))
+                .andExpect(MockMvcResultMatchers.status().isCreated())
+                .andExpect(jsonPath("$.message").value("選手情報が登録されました"));
+        }
+   
 
     @Test
     @DataSet(value = "datasets/players.yml")
@@ -133,13 +135,12 @@ public class PlayerIntegrationTest {
     @Test
     @DataSet(value = "datasets/players.yml")
     @Transactional
-    void 存在しないIDの選手情報を更新しようとすると例外が返されること() throws Exception {
+    void 存在しないIDの選手情報を更新しようとすると例外の404のエラーが返ってくること() throws Exception {
         var player = new Player("山田哲人", 1, "o");
         var objectMapper = new ObjectMapper();
         mockMvc.perform(MockMvcRequestBuilders.patch("/players/5")
                         .content(objectMapper.writeValueAsString(player))
-                        .contentType(MediaType.APPLICATION_JSON_VALUE))
-                .andExpect(MockMvcResultMatchers.status().isNotFound())
+                        .contentType(MediaType.APPLICATION_JSON_VALUE)).andExpect(MockMvcResultMatchers.status().isNotFound())
                 .andExpect(MockMvcResultMatchers.jsonPath("$.status").value("404"))
                 .andExpect(MockMvcResultMatchers.jsonPath("$.message").value("選手情報が見つかりません"))
                 .andExpect(MockMvcResultMatchers.jsonPath("$.timestamp").exists())
@@ -147,31 +148,31 @@ public class PlayerIntegrationTest {
                 .andExpect(MockMvcResultMatchers.jsonPath("$.path").value("/players/5"));
     }
 
-        @Test
-        @DataSet(value = "datasets/players.yml")
-        @Transactional
-        void 指定したIDの選手を削除すること() throws Exception {
-            mockMvc.perform(MockMvcRequestBuilders.delete("/players/1"))
-                    .andExpect(status().isOk())
-                    .andExpect(MockMvcResultMatchers.content().json("""
+    @Test
+    @DataSet(value = "datasets/players.yml")
+    @Transactional
+    void 指定したIDの選手を削除すること() throws Exception {
+        mockMvc.perform(MockMvcRequestBuilders.delete("/players/1"))
+                .andExpect(status().isOk())
+                .andExpect(MockMvcResultMatchers.content().json("""
                                {
                                  "message": "選手情報が削除されました"
                                }
                             """
-                    ));
-        }
-
-        @Test
-        @DataSet(value = "datasets/players.yml")
-        @Transactional
-        void 選手を削除する時に指定したIDが存在しない場合に例外が返されること () throws Exception {
-            mockMvc.perform(MockMvcRequestBuilders.delete("/players/5"))
-                    .andExpect(MockMvcResultMatchers.status().isNotFound())
-                    .andExpect(MockMvcResultMatchers.jsonPath("$.status").value("404"))
-                    .andExpect(MockMvcResultMatchers.jsonPath("$.message").value("選手情報が見つかりません"))
-                    .andExpect(MockMvcResultMatchers.jsonPath("$.timestamp").exists())
-                    .andExpect(MockMvcResultMatchers.jsonPath("$.error").value("Not Found"))
-                    .andExpect(MockMvcResultMatchers.jsonPath("$.path").value("/players/5"));
-        }
+                ));
     }
+
+    @Test
+    @DataSet(value = "datasets/players.yml")
+    @Transactional
+    void 選手を削除する時に指定したIDが存在しない場合に例外が返されること () throws Exception {
+        mockMvc.perform(MockMvcRequestBuilders.delete("/players/5"))
+                .andExpect(MockMvcResultMatchers.status().isNotFound())
+                .andExpect(MockMvcResultMatchers.jsonPath("$.status").value("404"))
+                .andExpect(MockMvcResultMatchers.jsonPath("$.message").value("選手情報が見つかりません"))
+                .andExpect(MockMvcResultMatchers.jsonPath("$.timestamp").exists())
+                .andExpect(MockMvcResultMatchers.jsonPath("$.error").value("Not Found"))
+                .andExpect(MockMvcResultMatchers.jsonPath("$.path").value("/players/5"));
+    }
+}
 
