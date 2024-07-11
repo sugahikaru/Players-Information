@@ -105,8 +105,24 @@ public class PlayerIntegrationTest {
                          """))
                 .andExpect(MockMvcResultMatchers.status().isCreated())
                 .andExpect(jsonPath("$.message").value("選手情報が登録されました"));
-        }
-   
+    }
+
+    @Test
+    @DataSet(value = "datasets/players.yml")
+    @Transactional
+    void 不正のリクエストボディを送り新規登録をしようとした際に例外の400のエラーが返ってくること() throws Exception {
+        mockMvc.perform(MockMvcRequestBuilders.post("/players")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                        {
+                             "name": "ダルビッシュ有",
+                             "number": -11,
+                             "team":"パドレス"
+                         }
+                         """))
+                .andExpect(status().isBadRequest())
+                .andExpect(MockMvcResultMatchers.jsonPath("$.number").value("背番号は整数を入力してください"));
+    }
 
     @Test
     @DataSet(value = "datasets/players.yml")
@@ -165,7 +181,7 @@ public class PlayerIntegrationTest {
     @Test
     @DataSet(value = "datasets/players.yml")
     @Transactional
-    void 選手を削除する時に指定したIDが存在しない場合に例外が返されること () throws Exception {
+    void 選手を削除する時に指定したIDが存在しない場合に例外の404のエラーが返ってくること () throws Exception {
         mockMvc.perform(MockMvcRequestBuilders.delete("/players/5"))
                 .andExpect(MockMvcResultMatchers.status().isNotFound())
                 .andExpect(MockMvcResultMatchers.jsonPath("$.status").value("404"))
