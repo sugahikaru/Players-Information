@@ -2,6 +2,7 @@ package com.hikaru.Hawks;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.database.rider.core.api.dataset.DataSet;
+import com.github.database.rider.core.api.dataset.ExpectedDataSet;
 import com.github.database.rider.spring.api.DBRider;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,6 +17,7 @@ import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
 import org.springframework.transaction.annotation.Transactional;
 
+import static org.hamcrest.Matchers.matchesPattern;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
@@ -92,19 +94,22 @@ public class PlayerIntegrationTest {
 
     @Test
     @DataSet(value = "datasets/players.yml")
+    @ExpectedDataSet(value = "datasets/playersAfter.yml", ignoreCols = "id")
     @Transactional
     void 新規選手を登録できること() throws Exception {
         mockMvc.perform(MockMvcRequestBuilders.post("/players")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content("""
-                        {
-                             "name": "ダルビッシュ有",
-                             "number": 11,
-                             "team":"パドレス"
-                         }
-                         """))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                     "name": "ダルビッシュ有",
+                                     "number": 11,
+                                     "team":"パドレス"
+                                 }
+                                 """))
                 .andExpect(MockMvcResultMatchers.status().isCreated())
-                .andExpect(jsonPath("$.message").value("選手情報が登録されました"));
+                .andExpect(jsonPath("$.message").value("選手情報が登録されました"))
+                .andExpect(header().string(
+                        "Location", matchesPattern("http://localhost/players/\\d+")));
     }
 
     @Test
@@ -114,14 +119,15 @@ public class PlayerIntegrationTest {
         mockMvc.perform(MockMvcRequestBuilders.post("/players")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
-                        {
-                             "name": "ダルビッシュ有",
-                             "number": -11,
-                             "team":"パドレス"
-                         }
-                         """))
+                                {
+                                     "name": "ダルビッシュ有",
+                                     "number": -11,
+                                     "team":"パドレス"
+                                 }
+                                 """))
                 .andExpect(status().isBadRequest())
                 .andExpect(MockMvcResultMatchers.jsonPath("$.number").value("背番号は整数を入力してください"));
+        ;
     }
 
     @Test
@@ -167,28 +173,28 @@ public class PlayerIntegrationTest {
     @Test
     @DataSet(value = "datasets/players.yml")
     @Transactional
-    void 指定したIDの選手を削除すること() throws Exception {
+    void 指定したIDの選手を削除すること () throws Exception {
         mockMvc.perform(MockMvcRequestBuilders.delete("/players/1"))
                 .andExpect(status().isOk())
                 .andExpect(MockMvcResultMatchers.content().json("""
-                               {
+                              {
                                  "message": "選手情報が削除されました"
-                               }
+                              }
                             """
                 ));
-    }
+        }
 
-    @Test
-    @DataSet(value = "datasets/players.yml")
-    @Transactional
-    void 選手を削除する時に指定したIDが存在しない場合に例外の404のエラーが返ってくること () throws Exception {
-        mockMvc.perform(MockMvcRequestBuilders.delete("/players/5"))
-                .andExpect(MockMvcResultMatchers.status().isNotFound())
-                .andExpect(MockMvcResultMatchers.jsonPath("$.status").value("404"))
-                .andExpect(MockMvcResultMatchers.jsonPath("$.message").value("選手情報が見つかりません"))
-                .andExpect(MockMvcResultMatchers.jsonPath("$.timestamp").exists())
-                .andExpect(MockMvcResultMatchers.jsonPath("$.error").value("Not Found"))
-                .andExpect(MockMvcResultMatchers.jsonPath("$.path").value("/players/5"));
+        @Test
+        @DataSet(value = "datasets/players.yml")
+        @Transactional
+        void 選手を削除する時に指定したIDが存在しない場合に例外の404のエラーが返ってくること () throws Exception {
+            mockMvc.perform(MockMvcRequestBuilders.delete("/players/5"))
+                    .andExpect(MockMvcResultMatchers.status().isNotFound())
+                    .andExpect(MockMvcResultMatchers.jsonPath("$.status").value("404"))
+                    .andExpect(MockMvcResultMatchers.jsonPath("$.message").value("選手情報が見つかりません"))
+                    .andExpect(MockMvcResultMatchers.jsonPath("$.timestamp").exists())
+                    .andExpect(MockMvcResultMatchers.jsonPath("$.error").value("Not Found"))
+                    .andExpect(MockMvcResultMatchers.jsonPath("$.path").value("/players/5"));
+        }
     }
-}
 
