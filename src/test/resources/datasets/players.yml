@@ -1,0 +1,13 @@
+players:
+  - id: 1
+    name: "柳田悠岐"
+    number: 9
+    team: "ソフトバンク"
+  - id: 2
+    name: "イチロー"
+    number: 55
+    team: "マリナーズ"
+  - id: 3
+    name: "大谷翔平"
+    number: 17
+    team: "ドジャース"
