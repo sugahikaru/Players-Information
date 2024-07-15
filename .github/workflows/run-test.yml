@@ -29,5 +29,11 @@ jobs:
         with:
           gradle-version: '8.5'
 
+      - name: List files before chmod
+        run: ls -l
+
+      - name: Change permissions of gradlew file
+        run: chmod +x ./gradlew
+
       - name: Test with Gradle Wrapper
         run: ./gradlew Test
