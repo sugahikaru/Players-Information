@@ -30,7 +30,7 @@ class PlayerMapperTest {
                 .contains(
                         new Player(1, "柳田悠岐", 9, "ソフトバンク"),
                         new Player(2, "イチロー", 55, "マリナーズ"),
-                        new Player(3, "大谷翔平", 17, "ドジャース")
+                        new Player(4, "大谷翔平", 17, "ドジャース")
                 );
     }
 
